@@ -20,89 +20,89 @@ var autoResponse = CalendarApp.GuestStatus.MAYBE; // Choose between [MAYBE, NO]
 
 
 function dayToString(day) {
-	switch(day) {
-	case 0:
-		return "Sunday";
-	case 1:
-		return "Monday";
-	case 2:
-		return "Tuesday";
-	case 3:
-		return "Wednesday";
-	case 4:
-		return "Thursday";
-	case 5:
-		return "Friday";
-	case 6:
-		return "Saturday";
-	}
-
-	return "";
+    switch(day) {
+    case 0:
+        return "Sunday";
+    case 1:
+        return "Monday";
+    case 2:
+        return "Tuesday";
+    case 3:
+        return "Wednesday";
+    case 4:
+        return "Thursday";
+    case 5:
+        return "Friday";
+    case 6:
+        return "Saturday";
+    }
+    
+    return "";
 }
 
 function convertNumToTime(number) {
-	number = Math.abs(number);
-	
-	// Separate the hour from the minutes
-	var hour = Math.floor(number);
-	var remainder = (1/60) * Math.round((number - hour) / (1/60));
-	var minute = Math.floor(remainder * 60) + "";
-	
-	// Add leading '0' if single-digit minute
-	if (minute.length < 2) {
-		minute = "0" + minute; 
-	}
-	
-	// Convert to 12-hour time
-	if(hour > 12) {
-		return (hour - 12) + ":" + minute + "pm";
-	} else {
-		return hour + ":" + minute + "am";
-	}
-	
+    number = Math.abs(number);
+    
+    // Separate the hour from the minutes
+    var hour = Math.floor(number);
+    var remainder = (1/60) * Math.round((number - hour) / (1/60));
+    var minute = Math.floor(remainder * 60) + "";
+    
+    // Add leading '0' if single-digit minute
+    if (minute.length < 2) {
+        minute = "0" + minute; 
+    }
+    
+    // Convert to 12-hour time
+    if(hour > 12) {
+        return (hour - 12) + ":" + minute + "pm";
+    } else {
+        return hour + ":" + minute + "am";
+    }
+    
 }
 
 
 function autoDeclineOutsideWorkingHours() {
-	var calendar = CalendarApp.getCalendarById(myEmail);
-
-	var today = new Date();
-	var twoWeeks = new Date();
-	twoWeeks.setDate(today.getDate() + 14);
-
-	var events = calendar.getEvents(today, twoWeeks);
-	for (var i = 0; i < events.length; i++) {
-		var eventStart = events[i].getStartTime().getHours() + (events[i].getStartTime().getMinutes() / 60);
-		var eventEnd = events[i].getEndTime().getHours() + (events[i].getEndTime().getMinutes() / 60);
-		var eventStatus = events[i].getMyStatus(); // Get the status of the event for the current user
-		var eventDay = events[i].getStartTime().getDay(); // get the day of the week for the event
-		var eventTitle = events[i].getTitle();
-
-		// Check if the event is outside working hours
-		if (eventStart < startTime || eventEnd > endTime) {
-			if(eventStatus == CalendarApp.GuestStatus.INVITED) {
-				Logger.log(`Declining event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is outside working hours`);
-				events[i].setMyStatus(autoResponse);
-			} else {
-				Logger.log(`Would decline event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is outside working hours, but it has already been responded to.`);
-			}
-
-			continue; // Don't bother checking non-working day since we've already responded to this event now
-		}
-
-		// Check if the event is on a non-working day
-		if (declineDays.indexOf(eventDay) != -1) {
-			var day = declineDays[declineDays.indexOf(eventDay)];
-			if(eventStatus == CalendarApp.GuestStatus.INVITED) {
-				Logger.log(`Declining event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is on a non-working day ${dayToString(day)}`);
-				events[i].setMyStatus(autoResponse);
-			} else {
-				Logger.log(`Would decline event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is on a non-working day ${dayToString(day)}, but it has already been responded to.`);
-			}
-		}
-	}
+    var calendar = CalendarApp.getCalendarById(myEmail);
+    
+    var today = new Date();
+    var twoWeeks = new Date();
+    twoWeeks.setDate(today.getDate() + 14);
+    
+    var events = calendar.getEvents(today, twoWeeks);
+    for (var i = 0; i < events.length; i++) {
+        var eventStart = events[i].getStartTime().getHours() + (events[i].getStartTime().getMinutes() / 60);
+        var eventEnd = events[i].getEndTime().getHours() + (events[i].getEndTime().getMinutes() / 60);
+        var eventStatus = events[i].getMyStatus(); // Get the status of the event for the current user
+        var eventDay = events[i].getStartTime().getDay(); // get the day of the week for the event
+        var eventTitle = events[i].getTitle();
+        
+        // Check if the event is outside working hours
+        if (eventStart < startTime || eventEnd > endTime) {
+            if(eventStatus == CalendarApp.GuestStatus.INVITED) {
+                Logger.log(`Declining event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is outside working hours`);
+                events[i].setMyStatus(autoResponse);
+            } else {
+                Logger.log(`Would decline event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is outside working hours, but it has already been responded to.`);
+            }
+            
+            continue; // Don't bother checking non-working day since we've already responded to this event now
+        }
+        
+        // Check if the event is on a non-working day
+        if (declineDays.indexOf(eventDay) != -1) {
+            var day = declineDays[declineDays.indexOf(eventDay)];
+            if(eventStatus == CalendarApp.GuestStatus.INVITED) {
+                Logger.log(`Declining event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is on a non-working day ${dayToString(day)}`);
+                events[i].setMyStatus(autoResponse);
+            } else {
+                Logger.log(`Would decline event "${eventTitle}" on ${events[i].getStartTime().toDateString()} from ${convertNumToTime(eventStart)} - ${convertNumToTime(eventEnd)} because it is on a non-working day ${dayToString(day)}, but it has already been responded to.`);
+            }
+        }
+    }
 }
 
 function attachTrigger() {
-	ScriptApp.newTrigger("autoDeclineOutsideWorkingHours").forUserCalendar(myEmail).onEventUpdated().create();
+    ScriptApp.newTrigger("autoDeclineOutsideWorkingHours").forUserCalendar(myEmail).onEventUpdated().create();
 }
